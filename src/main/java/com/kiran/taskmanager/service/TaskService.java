@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kiran.taskmanager.dto.TaskRequest;
+import com.kiran.taskmanager.dto.TaskResponse;
 import com.kiran.taskmanager.entity.Priority;
 import com.kiran.taskmanager.entity.Status;
 import com.kiran.taskmanager.entity.Task;
@@ -26,7 +27,7 @@ public class TaskService {
     }
     
     //========================CREATE=============================
-    public Task createTask(TaskRequest request, Long userId) {
+    public TaskResponse createTask(TaskRequest request, Long userId) {
     	
     	User user = userRepository.findById(userId)
     	.orElseThrow(()-> new RuntimeException("User not found with id: "+ userId));
@@ -40,46 +41,61 @@ public class TaskService {
         
         task.setUser(user);
         
-        return taskRepository.save(task);
+        //return taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
+        return mapToResponse(savedTask);
     	
     }
     
     //====================GET ALL TASKS FOR A USER=======================
     
-    public List<Task> getAllTasks(Long userId){
-    	return taskRepository.findByUserId(userId);
+    public List<TaskResponse> getAllTasks(Long userId){
+    	return taskRepository.findByUserId(userId)
+    			.stream()
+    			.map(this :: mapToResponse)
+    			.toList();
     }
     
     
     //===================GET SINGLE TAKS=============================
-    public Task getTaskById(Long taskId, Long userId) {
+    public TaskResponse getTaskById(Long taskId, Long userId) {
     	Task task = taskRepository.findById(taskId)
     	.orElseThrow(()-> new RuntimeException("Task not found with id: "+taskId));	
     	
     	if(!task.getUser().getId().equals(userId)) {
     		throw new RuntimeException("You are not authorize to see this task");
     	}
-    	return task;
+    	//return task;
+    	return mapToResponse(task);
     }
     
     //=====================FILTER BY STATUS=========================
-    public List<Task> getTasksByStatus(Status status ,Long userId){
-    	return taskRepository.findByUserIdAndStatus(userId, status);
+    public List<TaskResponse> getTasksByStatus(Status status ,Long userId){
+    	return taskRepository.findByUserIdAndStatus(userId, status)
+    			.stream()
+    			.map(this::mapToResponse)
+    			.toList();
     }
     
     //=====================FILTER BY PRIORITY===========================
-    public List<Task> getTasksByPriority(Priority priority, Long userId){
-    	return taskRepository.findByUserIdAndPriority(userId, priority);
+    public List<TaskResponse> getTasksByPriority(Priority priority, Long userId){
+    	return taskRepository.findByUserIdAndPriority(userId, priority)
+    			.stream()
+    			.map(this::mapToResponse)
+    			.toList();
     }
     
     //=====================SEARCH BY TITLE==========================
-    public List<Task> searchTasks(String keyword, Long userId){
-    	return taskRepository.searchByTitle(userId, keyword);
+    public List<TaskResponse> searchTasks(String keyword, Long userId){
+    	return taskRepository.searchByTitle(userId, keyword)
+    			.stream()
+    			.map(this::mapToResponse)
+    			.toList();
     }
     
     
     //=============================UPDATE============================
-    public Task updateTask(Long taskId, TaskRequest request, Long userId) {
+    public TaskResponse updateTask(Long taskId, TaskRequest request, Long userId) {
     	Task task = taskRepository.findById(taskId)
     	.orElseThrow(()-> new RuntimeException("Task not found with id:"+ taskId));
     	
@@ -93,7 +109,9 @@ public class TaskService {
     	task.setPriority(request.getPriority());
     	task.setDueDate(request.getDueDate());
     	
-    	return taskRepository.save(task);
+    	//return taskRepository.save(task);
+    	Task updatedTask = taskRepository.save(task);
+    	return mapToResponse(updatedTask);
     }
     
     
@@ -108,6 +126,20 @@ public class TaskService {
     	 
     	 taskRepository.deleteById(taskId);
     	 
+    }
+    
+    //===============taskResponse===================================
+    private TaskResponse mapToResponse(Task task) {
+        return new TaskResponse(
+            task.getId(),
+            task.getTitle(),
+            task.getDescription(),
+            task.getStatus(),
+            task.getPriority(),
+            task.getDueDate(),
+            task.getCreatedAt(),
+            task.getUpdatedAt()
+        );
     }
     
 

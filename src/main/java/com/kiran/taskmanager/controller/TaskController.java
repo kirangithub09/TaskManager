@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kiran.taskmanager.dto.TaskRequest;
+import com.kiran.taskmanager.dto.TaskResponse;
 import com.kiran.taskmanager.entity.Priority;
 import com.kiran.taskmanager.entity.Status;
 import com.kiran.taskmanager.entity.Task;
@@ -37,14 +38,14 @@ public class TaskController {
 	
 	//=========================CREATE TASK========================
 	@PostMapping
-	public ResponseEntity<Task> createTask (@RequestBody @Valid TaskRequest request){
-		Task task = taskService.createTask(request, CURRENT_USER_ID);
+	public ResponseEntity<TaskResponse> createTask (@RequestBody @Valid TaskRequest request){
+		TaskResponse task = taskService.createTask(request, CURRENT_USER_ID);
 		return ResponseEntity.status(201).body(task);
 		}
 	
 	//=======================GET ALL TASKS(WITH OPTIONAL FILTERS)=================
 	@GetMapping
-	public ResponseEntity<List<Task>> getTasks(
+	public ResponseEntity<List<TaskResponse>> getTasks(
 			@RequestParam(required = false)String status,
 			@RequestParam(required = false)String priority,
 			@RequestParam(required = false)String search
@@ -67,13 +68,13 @@ public class TaskController {
 	
 	//=========================GET SINGLE TASK==================================
 	@GetMapping("/{id}")
-	public ResponseEntity<Task> getTask(@PathVariable Long id){
+	public ResponseEntity<TaskResponse> getTask(@PathVariable Long id){
 		return ResponseEntity.ok(taskService.getTaskById(id, CURRENT_USER_ID));
 	}
 	
 	//==========================UPDATE TASK======================================
 	@PutMapping("/{id}")
-	public ResponseEntity<Task> updateTask(
+	public ResponseEntity<TaskResponse> updateTask(
 			@PathVariable Long id,
 			@RequestBody @Valid TaskRequest request
 			){
